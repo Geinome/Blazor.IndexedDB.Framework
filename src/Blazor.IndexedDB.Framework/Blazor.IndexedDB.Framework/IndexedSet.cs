@@ -19,6 +19,8 @@ namespace Blazor.IndexedDB.Framework
         /// The internal stored items
         /// </summary>
         private readonly IList<IndexedEntity<T>> internalItems;
+        private HashSet<object> internalItemsHashSet = new HashSet<object>();
+
         /// <summary>
         /// The type T primary key, only != null if at least once requested by remove
         /// </summary>
@@ -44,6 +46,7 @@ namespace Blazor.IndexedDB.Framework
                 };
 
                 this.internalItems.Add(indexedItem);
+                internalItemsHashSet.Add(item);
             }
 
         }
@@ -54,12 +57,13 @@ namespace Blazor.IndexedDB.Framework
 
         public void Add(T item)
         {
-            if (!this.internalItems.Select(x => x.Instance).Contains(item))
+            if (!internalItemsHashSet.Contains(item))
             {
                 this.internalItems.Add(new IndexedEntity<T>(item)
                 {
                     State = EntityState.Added
                 });
+                internalItemsHashSet.Add(item);
             }
         }
 
