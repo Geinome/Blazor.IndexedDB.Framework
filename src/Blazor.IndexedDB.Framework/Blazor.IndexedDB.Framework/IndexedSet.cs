@@ -7,7 +7,13 @@ using System.Reflection;
 
 namespace Blazor.IndexedDB.Framework
 {
-    public class IndexedSet<T> : IEnumerable<T> where T : new()
+
+    public abstract class IndexedSet 
+    {
+        abstract internal IEnumerable<IndexedEntity> GetChanged();
+    }
+
+    public class IndexedSet<T> : IndexedSet, IEnumerable<T> where T : new()
     {
         /// <summary>
         /// The internal stored items
@@ -29,7 +35,6 @@ namespace Blazor.IndexedDB.Framework
                 return;
             }
 
-            Debug.WriteLine($"{nameof(IndexedEntity)} - Construct - Add records");
 
             foreach (var item in records)
             {
@@ -41,7 +46,6 @@ namespace Blazor.IndexedDB.Framework
                 this.internalItems.Add(indexedItem);
             }
 
-            Debug.WriteLine($"{nameof(IndexedEntity)} - Construct - Add records DONE");
         }
 
         public bool IsReadOnly => false;
@@ -52,8 +56,6 @@ namespace Blazor.IndexedDB.Framework
         {
             if (!this.internalItems.Select(x => x.Instance).Contains(item))
             {
-                Debug.WriteLine($"{nameof(IndexedEntity)} - Added item of type {typeof(T).Name}");
-
                 this.internalItems.Add(new IndexedEntity<T>(item)
                 {
                     State = EntityState.Added
@@ -87,7 +89,6 @@ namespace Blazor.IndexedDB.Framework
             // If reference was lost search for pk, increases the required time
             else
             {
-                Debug.WriteLine("Searching for equality with PK");
 
                 var value = this.primaryKey.GetValue(item);
 
@@ -95,7 +96,6 @@ namespace Blazor.IndexedDB.Framework
 
                 if (internalItem != null)
                 {
-                    Debug.WriteLine($"Found item with id {value}");
 
                     internalItem.State = EntityState.Deleted;
 
@@ -103,7 +103,6 @@ namespace Blazor.IndexedDB.Framework
                 }
             }
 
-            Debug.WriteLine("Could not find internal stored item");
             return false;
         }
 
@@ -120,7 +119,7 @@ namespace Blazor.IndexedDB.Framework
         }
 
         // ToDo: replace change tracker with better alternative 
-        internal IEnumerable<IndexedEntity> GetChanged()
+        internal override IEnumerable<IndexedEntity> GetChanged()
         {
             foreach (var item in this.internalItems)
             {
@@ -131,7 +130,6 @@ namespace Blazor.IndexedDB.Framework
                     continue;
                 }
 
-                Debug.WriteLine("Item yield");
                 yield return item;
             }
         }

@@ -2,9 +2,16 @@
 @inject IIndexedDbFactory DbFactory
 
 <button @onclick="@(args => Create(args))">Click me</button>
+
+<p>Elapsed: @Elapsed</p>
+
 @code{
+
+    private string Elapsed;
 protected async Task Create(MouseEventArgs e)
 {
+    var qty = 1000;
+    Stopwatch sw = new Stopwatch();
     using (var db = await this.DbFactory.Create<ExampleDb>())
     {
         //var t = db.People.Include(x => x.Dog);
@@ -14,7 +21,10 @@ protected async Task Create(MouseEventArgs e)
         //    FirstName = "a",
         //    LastName = "b"
         //});
-        for (int i = 0; i < 100; i++)
+        
+        sw.Start();
+        
+        for (int i = 0; i < qty; i++)
         {
             db.People.Add(new Person()
             {
@@ -31,7 +41,13 @@ protected async Task Create(MouseEventArgs e)
         //});
 
         await db.SaveChanges();
+
+        
     }
+
+    sw.Stop();
+    Elapsed = sw.Elapsed.ToString();
+    Debug.WriteLine($"Time Elapsed for adding {qty} - {sw.Elapsed}");
 
     //using (var db = await this.DbFactory.Create<ExampleDb>())
     //{
